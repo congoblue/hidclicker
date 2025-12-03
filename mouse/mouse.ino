@@ -2,16 +2,18 @@
 
 #include <math.h> 
 
-uint8_t pinstate=1, KeyHit=0, seq=0;  
+uint8_t pinstate=1, KeyHit=0, seq=0, faderactive=0;  
 
 int preva0;
+
+uint32_t atime=0,v,fp;
 
 
   
 
 void setup() { 
 
-  AbsMouse.init(2560,1440); 
+  AbsMouse.init(1920,1080); 
 
   pinMode(12, INPUT_PULLUP);
   pinMode(11, INPUT_PULLUP);
@@ -67,13 +69,14 @@ void loop() {
     if (seq==1) AbsMouse.move(1900, 10); 
     if (seq==2) AbsMouse.move(1900, 1000); 
     if (seq==3) AbsMouse.move(10, 1000); */
-    if (KeyHit==1) AbsMouse.move(1404, 968); 
-    if (KeyHit==2) AbsMouse.move(1200, 968); 
-    if (KeyHit==4) AbsMouse.move(1000, 968); 
+    if (KeyHit==1) AbsMouse.move(1498, 1012); //go
+    if (KeyHit==2) AbsMouse.move(1461, 961);  //cue
+    if (KeyHit==4) AbsMouse.move(1391, 854);  //back
     AbsMouse.press(MOUSE_LEFT);
     KeyHit=0;
     delay(100); 
     AbsMouse.release(MOUSE_LEFT);
+    faderactive=0;
     delay(100); 
   }
 
@@ -81,6 +84,21 @@ void loop() {
   if (abs(a0-preva0)>20)
   {
      preva0=a0;
+     if (faderactive==0) fp=a0; //this is a new move starting. Remember where we started off from
+     atime=millis();
+     v=932+((1022-966)*2*(fp-a0)/1024);
+     AbsMouse.move(1361, v);
+     if (faderactive==0) 
+     {
+         faderactive=1;
+         AbsMouse.press(MOUSE_LEFT);
+     }
+  }
+
+  if ((faderactive!=0)&&((millis()-atime)>250))
+  {
+      AbsMouse.release(MOUSE_LEFT);
+      faderactive=0;
   }
 
   /*
